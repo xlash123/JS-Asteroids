@@ -116,22 +116,22 @@ class Ship {
 
 	update(game){
 		var dAngle = 0;
-		if(keys[DIR.LEFT]){
+		if(keys[KEY.LEFT] || keys[KEY.A]){
 			dAngle -= 3;
 		}
-		if(keys[DIR.RIGHT]){
+		if(keys[KEY.RIGHT] || keys[KEY.D]){
 			dAngle += 3;
 		}
 		this.angle += dAngle;
-		if(keys[DIR.UP]){
+		if(keys[KEY.UP] || keys[KEY.W]){
 			this.xVel += 0.038*Math.cos(this.angle * Math.PI / 180);
 			this.yVel += 0.038*Math.sin(this.angle * Math.PI / 180);
 		}
-		if(keys[DIR.DOWN]){
+		if(keys[KEY.DOWN] || keys[KEY.S]){
 			this.xVel -= 0.038*Math.cos(this.angle * Math.PI / 180);
 			this.yVel -= 0.038*Math.sin(this.angle * Math.PI / 180);
 		}
-		if(keys[DIR.SPACE] && this.bulletTick > 12){
+		if(keys[KEY.SPACE] && this.bulletTick > 12){
 			game.bullets.push(new Bullet(this.canvas, this));
 			this.bulletTick = 0;
 		}
@@ -171,8 +171,8 @@ class Ship {
 
 let keys = [];
 let intervalId = 0;
-const DIR = Object.freeze({
-	LEFT: 37, UP: 38, RIGHT: 39, DOWN:40, SPACE: 32, ESC: 27,
+const KEY = Object.freeze({
+	LEFT: 37, UP: 38, RIGHT: 39, DOWN:40, SPACE: 32, ESC: 27, W: 87, A: 65, S: 83, D: 68,
 });
 
 const handleKeyDown = function(ship){
@@ -228,12 +228,12 @@ class Game {
 		pausedText.visible = false;
 		intervalId = setInterval(()=>{
 			if(paused){
-				if(letUp && keys[DIR.ESC]){
+				if(letUp && keys[KEY.ESC]){
 					paused = false;
 					letUp = false;
 					pausedText.visible = false;
 				}
-				if(!keys[DIR.ESC]){
+				if(!keys[KEY.ESC]){
 					letUp = true;
 				}
 			}else{
@@ -265,12 +265,12 @@ class Game {
 				}
 				if(count%10==0) this.score++;
 				count++;
-				if(letUp && keys[DIR.ESC]){
+				if(letUp && keys[KEY.ESC]){
 					paused = true;
 					letUp = false;
 					pausedText.visible = true;
 				}
-				if (!keys[DIR.ESC]){
+				if (!keys[KEY.ESC]){
 					letUp = true;
 				}
 			}
