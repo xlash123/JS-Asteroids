@@ -190,8 +190,8 @@ class Game {
 
 	constructor(canvas){
 		this.canvas = canvas;
-		this.canvas.height = 700;
-		this.canvas.width = 700;
+		this.canvas.height = window.innerHeight-50;
+		this.canvas.width = window.innerWidth-100;
 		paper.setup(canvas);
 		this.ship = new Ship(this.canvas);
 		this.bullets = [];
