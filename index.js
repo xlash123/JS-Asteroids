@@ -202,7 +202,10 @@ class Game {
 		this.scoreItem.strokeColor = "white";
 		this.scoreItem.fontSize = 12;
 
-		if(getCookie("highscore") == null) setCookie("highscore", 0);
+		if(getCookie("highscore") == null){
+			console.log("No high score exists. Adding new one.");
+			setCookie("highscore", "0");
+		}
 	}
 
 	start(){
@@ -270,8 +273,10 @@ function setCookie(name,value,days) {
         date.setTime(date.getTime() + (days*24*60*60*1000));
         expires = "; expires=" + date.toUTCString();
     }
-    document.cookie = name + "=" + (value || "")  + expires + "; path=/";
+    if(!value) value = "";
+    document.cookie = name + "=" + value + expires + "; path=/";
 }
+
 function getCookie(name) {
     var nameEQ = name + "=";
     var ca = document.cookie.split(';');
