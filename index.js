@@ -81,6 +81,7 @@ class Meteor {
 				b.kill = true;
 				b.path.remove();
 				this.path.remove();
+				game.score += 120 - this.radius;
 				return;
 			}
 		}
@@ -195,6 +196,13 @@ class Game {
 		this.ship = new Ship(this.canvas);
 		this.bullets = [];
 		this.meteors = [];
+		this.score = 0;
+
+		this.scoreItem = new paper.PointText(new paper.Point(20, 20));
+		this.scoreItem.strokeColor = "white";
+		this.scoreItem.fontSize = 12;
+
+		if(getCookie("highscore") == null) setCookie("highscore", 0);
 	}
 
 	start(){
@@ -205,6 +213,7 @@ class Game {
 	}
 
 	loop(){
+		var count = 0;
 		intervalId = setInterval(()=>{
 			if(Math.random() < 0.03){
 				this.meteors.push(new Meteor(this.canvas));
@@ -222,16 +231,62 @@ class Game {
 				m.update(this);
 			}
 			this.meteors = this.meteors.filter(m => !m.kill);
+			this.scoreItem.content = this.score;
 			if(this.ship.dead){
-				alert("You died. RIP, my dude.");
+				if(this.score > parseInt(this.getCookie("highscore"))){
+					document.cookie = "highScore=" + this.score + "; path=/";
+					alert("You died. RIP, my dude.\nNew High Score!: " + this.score);
+				}else alert("You died. RIP, my dude.");
 				clearInterval(intervalId);
 				location.reload();
 			}
+			if(count%10==0) this.score++;
+			count++;
 		}, 10);
+	}
+
+	getCookie(cname) {
+	    var name = cname + "=";
+	    var decodedCookie = decodeURIComponent(document.cookie);
+	    var ca = decodedCookie.split(';');
+	    for(var i = 0; i <ca.length; i++) {
+	        var c = ca[i];
+	        while (c.charAt(0) == ' ') {
+	            c = c.substring(1);
+	        }
+	        if (c.indexOf(name) == 0) {
+	            return c.substring(name.length, c.length);
+	        }
+	    }
+	    return "";
 	}
 
 }
 
+function setCookie(name,value,days) {
+    var expires = "";
+    if (days) {
+        var date = new Date();
+        date.setTime(date.getTime() + (days*24*60*60*1000));
+        expires = "; expires=" + date.toUTCString();
+    }
+    document.cookie = name + "=" + (value || "")  + expires + "; path=/";
+}
+function getCookie(name) {
+    var nameEQ = name + "=";
+    var ca = document.cookie.split(';');
+    for(var i=0;i < ca.length;i++) {
+        var c = ca[i];
+        while (c.charAt(0)==' ') c = c.substring(1,c.length);
+        if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+    }
+    return null;
+}
+function eraseCookie(name) {   
+    document.cookie = name+'=; Max-Age=-99999999;';  
+}
+
+document.cookie = "highScore=0; path=/;";
 let canvas = document.getElementById("screen");
 let game = new Game(canvas);
 
