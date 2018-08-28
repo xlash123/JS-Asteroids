@@ -236,10 +236,11 @@ class Game {
 			this.meteors = this.meteors.filter(m => !m.kill);
 			this.scoreItem.content = this.score;
 			if(this.ship.dead){
-				if(this.score > parseInt(getCookie("highscore"))){
+				var highScore = parseInt(getCookie("highscore"))
+				if(this.score > highScore){
 					setCookie("highscore", this.score)
 					alert("You died. RIP, my dude.\nNew High Score!: " + this.score);
-				}else alert("You died. RIP, my dude.");
+				}else alert("You died. RIP, my dude.\nYour current high score is: " highScore);
 				clearInterval(intervalId);
 				location.reload();
 			}
