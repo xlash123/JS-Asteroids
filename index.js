@@ -172,7 +172,7 @@ class Ship {
 let keys = [];
 let intervalId = 0;
 const DIR = Object.freeze({
-	LEFT: 37, UP: 38, RIGHT: 39, DOWN:40, SPACE: 32,
+	LEFT: 37, UP: 38, RIGHT: 39, DOWN:40, SPACE: 32, ESC: 27,
 });
 
 const handleKeyDown = function(ship){
@@ -217,35 +217,63 @@ class Game {
 
 	loop(){
 		var count = 0;
+		var paused = false;
+		var letUp = false;
+		var pausedText = new paper.PointText(new paper.Point(0,0));
+		pausedText.strokeColor = "white";
+		pausedText.fontSize = 60;
+		pausedText.fillColor = "white"
+		pausedText.content = "Paused";
+		pausedText.position = new paper.Point(this.canvas.width/2, this.canvas.height/2);
+		pausedText.visible = false;
 		intervalId = setInterval(()=>{
-			if(Math.random() < (0.03 + count/1200000)){
-				this.meteors.push(new Meteor(this.canvas));
-			}
-			this.ship.update(this);
+			if(paused){
+				if(letUp && keys[DIR.ESC]){
+					paused = false;
+					letUp = false;
+					pausedText.visible = false;
+				}
+				if(!keys[DIR.ESC]){
+					letUp = true;
+				}
+			}else{
+				if(Math.random() < (0.03 + count/1200000)){
+					this.meteors.push(new Meteor(this.canvas));
+				}
+				this.ship.update(this);
 
-			for (var i in this.bullets){
-				var b = this.bullets[i];
-				b.update(this);
-			}
-			this.bullets = this.bullets.filter(b => !b.kill);
+				for (var i in this.bullets){
+					var b = this.bullets[i];
+					b.update(this);
+				}
+				this.bullets = this.bullets.filter(b => !b.kill);
 
-			for (var i in this.meteors){
-				var m = this.meteors[i];
-				m.update(this);
+				for (var i in this.meteors){
+					var m = this.meteors[i];
+					m.update(this);
+				}
+				this.meteors = this.meteors.filter(m => !m.kill);
+				this.scoreItem.content = this.score;
+				if(this.ship.dead){
+					var highScore = parseInt(getCookie("highscore"))
+					if(this.score > highScore){
+						setCookie("highscore", this.score)
+						alert("You died. RIP, my dude.\nNew High Score!: " + this.score);
+					}else alert("You died. RIP, my dude.\nYour current high score is: " + highScore);
+					clearInterval(intervalId);
+					location.reload();
+				}
+				if(count%10==0) this.score++;
+				count++;
+				if(letUp && keys[DIR.ESC]){
+					paused = true;
+					letUp = false;
+					pausedText.visible = true;
+				}
+				if (!keys[DIR.ESC]){
+					letUp = true;
+				}
 			}
-			this.meteors = this.meteors.filter(m => !m.kill);
-			this.scoreItem.content = this.score;
-			if(this.ship.dead){
-				var highScore = parseInt(getCookie("highscore"))
-				if(this.score > highScore){
-					setCookie("highscore", this.score)
-					alert("You died. RIP, my dude.\nNew High Score!: " + this.score);
-				}else alert("You died. RIP, my dude.\nYour current high score is: " + highScore);
-				clearInterval(intervalId);
-				location.reload();
-			}
-			if(count%10==0) this.score++;
-			count++;
 		}, 10);
 	}
 
