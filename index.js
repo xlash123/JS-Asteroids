@@ -218,7 +218,7 @@ class Game {
 	loop(){
 		var count = 0;
 		intervalId = setInterval(()=>{
-			if(Math.random() < 0.03){
+			if(Math.random() < (0.03 + count/1200000)){
 				this.meteors.push(new Meteor(this.canvas));
 			}
 			this.ship.update(this);
@@ -240,7 +240,7 @@ class Game {
 				if(this.score > highScore){
 					setCookie("highscore", this.score)
 					alert("You died. RIP, my dude.\nNew High Score!: " + this.score);
-				}else alert("You died. RIP, my dude.\nYour current high score is: " highScore);
+				}else alert("You died. RIP, my dude.\nYour current high score is: " + highScore);
 				clearInterval(intervalId);
 				location.reload();
 			}
@@ -291,6 +291,22 @@ function getCookie(name) {
 function eraseCookie(name) {   
     document.cookie = name+'=; Max-Age=-99999999;';  
 }
+
+// Check if a new cache is available on page load.
+window.addEventListener('load', function(e) {
+
+  window.applicationCache.addEventListener('updateready', function(e) {
+    if (window.applicationCache.status == window.applicationCache.UPDATEREADY) {
+      // Browser downloaded a new app cache.
+      // Swap it in and reload the page to get the new hotness.
+      window.applicationCache.swapCache();
+      window.location.reload()
+    } else {
+      // Manifest didn't changed. Nothing new to server.
+    }
+  }, false);
+
+}, false);
 
 let canvas = document.getElementById("screen");
 let game = new Game(canvas);
