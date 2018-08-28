@@ -286,6 +286,7 @@ function eraseCookie(name) {
     document.cookie = name+'=; Max-Age=-99999999;';  
 }
 
+let canvas = document.getElementById("screen");
 let game = new Game(canvas);
 
 game.start();
