@@ -273,7 +273,8 @@ class Game {
 			this.canvas.addEventListener("touchstart", touchStart, false);
 			this.canvas.addEventListener("touchmove", touchMove, false);
 			this.canvas.addEventListener("touchend", touchEnd, false);
-			this.canvas.addEventListener("mousemove", (e)=>{e.preventDefault();e.stopPropagation();}, false);
+
+			window.ontouchmove = preventDefault;
 		}else{
 			this.canvas.addEventListener("keydown", handleKeyDown(this.ship), false);
 			this.canvas.addEventListener("keyup", handleKeyUp, false);
@@ -370,6 +371,13 @@ function setCookie(name,value,days) {
     }
     if(!value) value = "";
     document.cookie = name + "=" + value + expires + "; path=/";
+}
+
+function preventDefault(e) {
+	e = e || window.event;
+	if (e.preventDefault)
+		e.preventDefault();
+	e.returnValue = false;  
 }
 
 function getCookie(name) {
