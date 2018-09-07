@@ -225,9 +225,10 @@ class Game {
 
 	constructor(canvas){
 		this.canvas = canvas;
-		window.addEventListener('resize', resizeCanvas, false);
-		window.addEventListener('orientationchange', resizeCanvas, false);
-		resizeCanvas();
+		var container = document.getElementById("container");
+		container.style.height = (window.innerHeight-50) + "px";
+		this.canvas.height = container.clientHeight;
+		this.canvas.width = container.clientWidth;
 		this.isMobile = window.mobilecheck();
 		paper.setup(canvas);
 		this.ship = new Ship(this.canvas);
@@ -357,12 +358,7 @@ class Game {
 	    return "";
 	}
 
-}
-
-function resizeCanvas() {
-	canvas.height = window.innerHeight-50;
-	canvas.width = window.innerWidth-100;
-}
+}	
 
 function setCookie(name,value,days) {
     var expires = "";
