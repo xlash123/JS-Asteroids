@@ -230,8 +230,8 @@ class Game {
 		this.isMobile = window.mobilecheck();
 		if(this.isMobile){
 			var ratio = window.devicePixelRatio || 1;
-			this.canvas.width = screen.width * ratio;
-			this.canvas.height = screen.height * ratio;
+			this.canvas.width = window.innerWidth * ratio;
+			this.canvas.height = window.innerHeight * ratio;
 		}
 		paper.setup(canvas);
 		this.ship = new Ship(this.canvas);
