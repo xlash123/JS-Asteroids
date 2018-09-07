@@ -236,13 +236,14 @@ class Game {
 		this.canvasX = canvas.getBoundingClientRect().left;
 		this.canvasY = canvas.getBoundingClientRect().top;
 
-		alert("Mobile: " + this.isMobile);
+		this.scoreItem = new paper.PointText(new paper.Point(20, 20));
+		this.scoreItem.strokeColor = "white";
+		this.scoreItem.fontSize = 12;
+		this.scoreItem.content = 0;
+
+		alert("Size: " + canvas.width + ", " + canvas.height)
 
 		if(this.isMobile){
-			this.scoreItem = new paper.PointText(new paper.Point(20, 20));
-			this.scoreItem.strokeColor = "white";
-			this.scoreItem.fontSize = 12;
-
 			this.padLeft = new paper.Path.Rectangle(2, canvas.height-104, 50, 50);
 			this.padLeft.strokeColor = "white";
 			this.padLeft.strokeWidth = 1;
