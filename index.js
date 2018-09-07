@@ -236,6 +236,8 @@ class Game {
 		this.canvasX = canvas.getBoundingClientRect().left;
 		this.canvasY = canvas.getBoundingClientRect().top;
 
+		alert("Mobile: " + this.isMobile);
+
 		if(this.isMobile){
 			this.scoreItem = new paper.PointText(new paper.Point(20, 20));
 			this.scoreItem.strokeColor = "white";
