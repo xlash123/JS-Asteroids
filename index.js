@@ -236,25 +236,27 @@ class Game {
 		this.canvasX = canvas.getBoundingClientRect().left;
 		this.canvasY = canvas.getBoundingClientRect().top;
 
-		this.scoreItem = new paper.PointText(new paper.Point(20, 20));
-		this.scoreItem.strokeColor = "white";
-		this.scoreItem.fontSize = 12;
+		if(this.isMobile){
+			this.scoreItem = new paper.PointText(new paper.Point(20, 20));
+			this.scoreItem.strokeColor = "white";
+			this.scoreItem.fontSize = 12;
 
-		this.padLeft = new paper.Path.Rectangle(2, canvas.height-104, 50, 50);
-		this.padLeft.strokeColor = "white";
-		this.padLeft.strokeWidth = 1;
-		this.padDown = new paper.Path.Rectangle(53, canvas.height-52, 50, 50);
-		this.padDown.strokeColor = "white";
-		this.padDown.strokeWidth = 1;
-		this.padRight = new paper.Path.Rectangle(104, canvas.height-104, 50, 50);
-		this.padRight.strokeColor = "white";
-		this.padRight.strokeWidth = 1;
-		this.padUp = new paper.Path.Rectangle(53, canvas.height-154, 50, 50);
-		this.padUp.strokeColor = "white";
-		this.padUp.strokeWidth = 1;
-		this.padShoot = new paper.Path.Circle(new paper.Point(canvas.width-50, canvas.height-50), 48);
-		this.padShoot.strokeColor = "white"
-		this.padShoot.strokeWidth = 1;
+			this.padLeft = new paper.Path.Rectangle(2, canvas.height-104, 50, 50);
+			this.padLeft.strokeColor = "white";
+			this.padLeft.strokeWidth = 1;
+			this.padDown = new paper.Path.Rectangle(53, canvas.height-52, 50, 50);
+			this.padDown.strokeColor = "white";
+			this.padDown.strokeWidth = 1;
+			this.padRight = new paper.Path.Rectangle(104, canvas.height-104, 50, 50);
+			this.padRight.strokeColor = "white";
+			this.padRight.strokeWidth = 1;
+			this.padUp = new paper.Path.Rectangle(53, canvas.height-154, 50, 50);
+			this.padUp.strokeColor = "white";
+			this.padUp.strokeWidth = 1;
+			this.padShoot = new paper.Path.Circle(new paper.Point(canvas.width-50, canvas.height-50), 48);
+			this.padShoot.strokeColor = "white"
+			this.padShoot.strokeWidth = 1;
+		}
 
 		if(getCookie("highscore") == null){
 			console.log("No high score exists. Adding new one.");
