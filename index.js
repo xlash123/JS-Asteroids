@@ -227,12 +227,18 @@ class Game {
 		this.canvas = canvas;
 		this.canvas.height = window.innerHeight-50;
 		this.canvas.width = window.innerWidth-100;
+		this.isMobile = window.mobilecheck();
+		if(this.isMobile){
+			var ratio = window.devicePixelRatio || 1;
+			this.canvas.width = screen.width * ratio;
+			this.canvas.height = screen.height * ratio;
+		}
 		paper.setup(canvas);
 		this.ship = new Ship(this.canvas);
 		this.bullets = [];
 		this.meteors = [];
 		this.score = 0;
-		this.isMobile = window.mobilecheck();
+		
 		this.canvasX = canvas.getBoundingClientRect().left;
 		this.canvasY = canvas.getBoundingClientRect().top;
 
@@ -240,8 +246,6 @@ class Game {
 		this.scoreItem.strokeColor = "white";
 		this.scoreItem.fontSize = 12;
 		this.scoreItem.content = 0;
-
-		alert("Size: " + canvas.width + ", " + canvas.height)
 
 		if(this.isMobile){
 			this.padLeft = new paper.Path.Rectangle(2, canvas.height-104, 50, 50);
