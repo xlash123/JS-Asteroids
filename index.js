@@ -273,9 +273,10 @@ class Game {
 			this.canvas.addEventListener("touchstart", touchStart, false);
 			this.canvas.addEventListener("touchmove", touchMove, false);
 			this.canvas.addEventListener("touchend", touchEnd, false);
+			this.canvas.addEventListener("mousemove", (e)=>{e.preventDefault();e.stopPropagation();}, false);
 		}else{
-			addEventListener("keydown", handleKeyDown(this.ship), false);
-			addEventListener("keyup", handleKeyUp, false);
+			this.canvas.addEventListener("keydown", handleKeyDown(this.ship), false);
+			this.canvas.addEventListener("keyup", handleKeyUp, false);
 		}
 		this.loop();
 	}
