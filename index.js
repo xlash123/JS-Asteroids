@@ -225,13 +225,10 @@ class Game {
 
 	constructor(canvas){
 		this.canvas = canvas;
-		this.canvas.height = window.innerHeight-50;
-		this.canvas.width = window.innerWidth-100;
+		window.addEventListener('resize', resizeCanvas, false);
+		window.addEventListener('orientationchange', resizeCanvas, false);
+		resizeCanvas();
 		this.isMobile = window.mobilecheck();
-		if(this.isMobile){
-			this.canvas.height = 300;
-			this.canvas.width = 400;
-		}
 		paper.setup(canvas);
 		this.ship = new Ship(this.canvas);
 		this.bullets = [];
@@ -360,6 +357,11 @@ class Game {
 	    return "";
 	}
 
+}
+
+function resizeCanvas() {
+	canvas.height = window.innerHeight-50;
+	canvas.width = window.innerWidth-100;
 }
 
 function setCookie(name,value,days) {
