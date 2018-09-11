@@ -245,6 +245,8 @@ class Game {
 		this.scoreItem.content = 0;
 
 		if(this.isMobile){
+			console.log("Mobile browser detected");
+			
 			this.padLeft = new paper.Path.Rectangle(2, canvas.height-104, 50, 50);
 			this.padLeft.strokeColor = "white";
 			this.padLeft.strokeWidth = 1;
@@ -269,13 +271,16 @@ class Game {
 	}
 
 	start(){
+		this.canvas.focus();
 		if(this.isMobile){
+			console.log("Setting up mobile touch events");
 			this.canvas.addEventListener("touchstart", touchStart, false);
 			this.canvas.addEventListener("touchmove", touchMove, false);
 			this.canvas.addEventListener("touchend", touchEnd, false);
 
 			window.ontouchmove = preventDefault;
 		}else{
+			console.log("Setting up keypress events");
 			this.canvas.addEventListener("keydown", handleKeyDown(this.ship), false);
 			this.canvas.addEventListener("keyup", handleKeyUp, false);
 		}
