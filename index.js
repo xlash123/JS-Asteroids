@@ -1,3 +1,5 @@
+const FPS = 100;
+
 class Bullet {
 
 	constructor(canvas, ship){
@@ -26,9 +28,6 @@ class Bullet {
 		this.path.position = new paper.Point(this.xPos, this.yPos);
 
 		this.kill = this.xPos < 0 || this.xPos > this.canvas.width || this.yPos < 0 || this.yPos > this.canvas.height;
-		if(this.kill){
-			this.path.remove();
-		}
 	}
 
 }
@@ -91,7 +90,6 @@ class Meteor {
 			this.kill = this.radius*this.radius >= Math.pow(b.xPos-this.xPos, 2) + Math.pow(b.yPos-this.yPos, 2);
 			if(this.kill){
 				b.kill = true;
-				b.path.remove();
 				this.path.remove();
 				game.score += 120 - this.radius;
 				return;
@@ -330,13 +328,16 @@ class Game {
 					var b = this.bullets[i];
 					b.update(this);
 				}
-				this.bullets = this.bullets.filter(b => !b.kill);
 
 				for (var i in this.meteors){
 					var m = this.meteors[i];
 					m.update(this);
 				}
+
+				this.bullets.forEach(b => {if(b.kill) b.path.remove()});
+				this.bullets = this.bullets.filter(b => !b.kill);
 				this.meteors = this.meteors.filter(m => !m.kill);
+
 				this.scoreItem.content = this.score;
 				if(this.ship.dead){
 					var highScore = parseInt(getCookie("highscore"))
@@ -358,7 +359,7 @@ class Game {
 					letUp = true;
 				}
 			}
-		}, 10);
+		}, 1000/FPS);
 	}
 
 	getCookie(cname) {
