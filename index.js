@@ -64,16 +64,28 @@ class Meteor {
 				this.yVel = -Math.random() * 1.7 + 0.3;
 		}
 		this.kill = false;
+		this.rotation = Math.random()*1.5-(1.5/2);
+		this.angle = 0;
 
-		this.path = new paper.Path.Circle(this.xPos, this.yPos, this.radius);
+		this.path = new paper.Path();
 		this.path.strokeWidth = 3;
 		this.path.strokeColor = "white";
+		const numSides = 20+Math.floor(Math.random()*15);
+		const regSize = 2*Math.PI/numSides;
+		for(var i=0; i<numSides; i++){
+			const dist = this.radius - Math.floor(Math.random() * 7);
+			const angle = (i*regSize) + (Math.random() * regSize);
+			this.path.add(new paper.Point(dist*Math.cos(angle), dist*Math.sin(angle)));
+		}
+		this.path.add(this.path.getPointAt(0));
 	}
 
 	update(game){
 		this.xPos += this.xVel;
 		this.yPos += this.yVel;
 		this.path.position = new paper.Point(this.xPos, this.yPos);
+		this.angle += this.rotation;
+		this.path.rotate(this.rotation);
 		for (var i in game.bullets){
 			var b = game.bullets[i];
 			this.kill = this.radius*this.radius >= Math.pow(b.xPos-this.xPos, 2) + Math.pow(b.yPos-this.yPos, 2);
