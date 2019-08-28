@@ -2,11 +2,11 @@ const FPS = 100;
 
 class Bullet {
 
-	constructor(canvas, ship){
+	constructor(ship, xPos, yPos, angle){
 		this.canvas = canvas;
-		this.angle = ship.angle * Math.PI / 180;
-		this.xPos = ship.xPos + ship.radius*Math.cos(this.angle);
-		this.yPos = ship.yPos + ship.radius*Math.sin(this.angle);
+		this.angle = angle || ship.angle * Math.PI / 180;
+		this.xPos = xPos || ship.xPos + ship.radius*Math.cos(this.angle);
+		this.yPos = yPos || ship.yPos + ship.radius*Math.sin(this.angle);
 
 		if(this.xPos < 0) this.xPos += this.canvas.width;
 		else if(this.xPos > this.canvas.width) this.xPos -= this.canvas.width;
@@ -17,7 +17,7 @@ class Bullet {
 		this.kill = false;
 
 		this.path = new paper.Path.Line(new paper.Point(this.xPos, this.yPos), new paper.Point(this.xPos+12, this.yPos));
-		this.path.rotate(ship.angle);
+		this.path.rotate(angle || ship.angle);
 		this.path.strokeWidth = 2;
 		this.path.strokeColor = "white";
 	}
@@ -34,49 +34,55 @@ class Bullet {
 
 class Meteor {
 
-	constructor(canvas){
+	constructor(path, radius, rotation, xVel, yVel){
 		this.canvas = canvas;
-		this.radius = Math.floor(Math.random() * 50) + 10;
-		switch(Math.floor(Math.random() * 4)){
-			case 0:
-				this.xPos = -this.radius
-				this.yPos = Math.random() * canvas.height;
-				this.xVel = Math.random() * 1.7 + 0.3;
-				this.yVel = (Math.random() * 1.7 + 0.3)-2;
-				break;
-			case 1:
-				this.xPos = canvas.width+this.radius;
-				this.yPos = Math.random() * canvas.height;
-				this.xVel = -Math.random() * 1.7 + 0.3;
-				this.yVel = (Math.random() * 1.7 + 0.3)-2;
-				break;
-			case 2:
-				this.yPos = -this.radius;
-				this.xPos = Math.random() * canvas.width;
-				this.xVel = (Math.random() * 1.7 + 0.3)-2;
-				this.yVel = Math.random() * 1.7 + 0.3;
-				break;
-			case 3:
-				this.yPos = canvas.height+this.radius;
-				this.xPos = Math.random() * canvas.width;
-				this.xVel = (Math.random() * 1.7 + 0.3)-2;
-				this.yVel = -Math.random() * 1.7 + 0.3;
+		this.radius = radius || Math.floor(Math.random() * 50) + 10;
+		this.xVel = xVel;
+		this.yVel = yVel;
+		if (!path) {
+			switch(Math.floor(Math.random() * 4)){
+				case 0:
+					this.xPos = -this.radius
+					this.yPos = Math.random() * this.canvas.height;
+					this.xVel = Math.random() * 1.7 + 0.3;
+					this.yVel = (Math.random() * 1.7 + 0.3)-2;
+					break;
+				case 1:
+					this.xPos = this.canvas.width+this.radius;
+					this.yPos = Math.random() * this.canvas.height;
+					this.xVel = -Math.random() * 1.7 + 0.3;
+					this.yVel = (Math.random() * 1.7 + 0.3)-2;
+					break;
+				case 2:
+					this.yPos = -this.radius;
+					this.xPos = Math.random() * this.canvas.width;
+					this.xVel = (Math.random() * 1.7 + 0.3)-2;
+					this.yVel = Math.random() * 1.7 + 0.3;
+					break;
+				case 3:
+					this.yPos = this.canvas.height+this.radius;
+					this.xPos = Math.random() * this.canvas.width;
+					this.xVel = (Math.random() * 1.7 + 0.3)-2;
+					this.yVel = -Math.random() * 1.7 + 0.3;
+			}
 		}
 		this.kill = false;
-		this.rotation = Math.random()*1.5-(1.5/2);
+		this.rotation = rotation || Math.random()*1.5-(1.5/2);
 		this.angle = 0;
 
-		this.path = new paper.Path();
-		this.path.strokeWidth = 3;
-		this.path.strokeColor = "white";
-		const numSides = 20+Math.floor(Math.random()*15);
-		const regSize = 2*Math.PI/numSides;
-		for(var i=0; i<numSides; i++){
-			const dist = this.radius - Math.floor(Math.random() * 7);
-			const angle = (i*regSize) + (Math.random() * regSize);
-			this.path.add(new paper.Point(dist*Math.cos(angle), dist*Math.sin(angle)));
+		this.path = path || new paper.Path();
+		if (!path) {
+			this.path.strokeWidth = 3;
+			this.path.strokeColor = "white";
+			const numSides = 20+Math.floor(Math.random()*15);
+			const regSize = 2*Math.PI/numSides;
+			for(var i=0; i<numSides; i++){
+				const dist = this.radius - Math.floor(Math.random() * 7);
+				const angle = (i*regSize) + (Math.random() * regSize);
+				this.path.add(new paper.Point(dist*Math.cos(angle), dist*Math.sin(angle)));
+			}
+			this.path.add(this.path.getPointAt(0));
 		}
-		this.path.add(this.path.getPointAt(0));
 	}
 
 	update(game){
@@ -101,14 +107,19 @@ class Meteor {
 		}
 	}
 
+	setPosition(x, y) {
+		this.xPos = x;
+		this.yPos = y;
+	}
+
 }
 
 class Ship {
 
-	constructor(canvas) {
+	constructor(isRemote = false, id) {
 		this.canvas = canvas;
-		this.xPos = canvas.width/2;
-		this.yPos = canvas.height/2;
+		this.xPos = this.canvas.width/2;
+		this.yPos = this.canvas.height/2;
 		this.angle = 0;
 		this.radius = 12;
 		this.xVel = 0;
@@ -116,6 +127,8 @@ class Ship {
 		this.bullets = [];
 		this.bulletTick = 13;
 		this.dead = false;
+		this.isRemote = isRemote;
+		this.id = id;
 
 		this.path = new paper.Path();
 		this.path.strokeColor = "white";
@@ -125,25 +138,26 @@ class Ship {
 	}
 
 	update(game){
-		var dAngle = 0;
-		if(keys[KEY.LEFT] || keys[KEY.A]){
-			dAngle -= 3;
-		}
-		if(keys[KEY.RIGHT] || keys[KEY.D]){
-			dAngle += 3;
-		}
-		this.angle += dAngle;
-		if(keys[KEY.UP] || keys[KEY.W]){
-			this.xVel += 0.038*Math.cos(this.angle * Math.PI / 180);
-			this.yVel += 0.038*Math.sin(this.angle * Math.PI / 180);
-		}
-		if(keys[KEY.DOWN] || keys[KEY.S]){
-			this.xVel -= 0.038*Math.cos(this.angle * Math.PI / 180);
-			this.yVel -= 0.038*Math.sin(this.angle * Math.PI / 180);
-		}
-		if(keys[KEY.SPACE] && this.bulletTick > 12){
-			game.bullets.push(new Bullet(this.canvas, this));
-			this.bulletTick = 0;
+		let dAngle = 0;
+		if (!this.isRemote) {
+			if(keys[KEY.LEFT] || keys[KEY.A]){
+				dAngle -= 3;
+			}
+			if(keys[KEY.RIGHT] || keys[KEY.D]){
+				dAngle += 3;
+			}
+			this.angle += dAngle;
+			if(keys[KEY.UP] || keys[KEY.W]){
+				this.xVel += 0.038*Math.cos(this.angle * Math.PI / 180);
+				this.yVel += 0.038*Math.sin(this.angle * Math.PI / 180);
+			}
+			if(keys[KEY.DOWN] || keys[KEY.S]){
+				this.xVel -= 0.038*Math.cos(this.angle * Math.PI / 180);
+				this.yVel -= 0.038*Math.sin(this.angle * Math.PI / 180);
+			}
+			if(keys[KEY.SPACE] && this.bulletTick > 12){
+				this.shootBullet();
+			}
 		}
 		if(this.xVel > 1.85) this.xVel = 1.85;
 		else if(this.xVel < -1.85) this.xVel = -1.85;
@@ -177,6 +191,27 @@ class Ship {
 		}
 	}
 
+	shootBullet() {
+		game.bullets.push(new Bullet(this));
+		this.bulletTick = 0;
+	}
+
+	setPosition(x, y) {
+		this.xPos = x;
+		this.yPos = y;
+	}
+
+	setVelocity(xVel, yVel) {
+		this.xVel = xVel;
+		this.yVel = yVel;
+	}
+
+	setAngle(angle) {
+		let dAngle = angle - this.angle;
+		this.angle = angle;
+		this.path.rotate(dAngle);w
+	}
+
 }
 
 let keys = [];
@@ -188,7 +223,6 @@ const KEY = Object.freeze({
 const handleKeyDown = function(ship){
 	return function(e){
 		keys[e.keyCode] = true;
-		e.preventDefault();
 	}
 }
 
@@ -241,7 +275,7 @@ class Game {
 		this.canvas.width = container.clientWidth;
 		this.isMobile = window.mobilecheck();
 		paper.setup(canvas);
-		this.ship = new Ship(this.canvas);
+		this.ships = [new Ship(false, 'host')];
 		this.bullets = [];
 		this.meteors = [];
 		this.score = 0;
@@ -291,7 +325,7 @@ class Game {
 			window.ontouchmove = preventDefault;
 		}else{
 			console.log("Setting up keypress events");
-			this.canvas.addEventListener("keydown", handleKeyDown(this.ship), false);
+			this.canvas.addEventListener("keydown", handleKeyDown(this.ships[0]), false);
 			this.canvas.addEventListener("keyup", handleKeyUp, false);
 		}
 		this.loop();
@@ -320,9 +354,19 @@ class Game {
 				}
 			}else{
 				if(Math.random() < (0.03 + count/1200000)){
-					this.meteors.push(new Meteor(this.canvas));
+					this.meteors.push(new Meteor());
 				}
-				this.ship.update(this);
+				this.ships.forEach(ship => ship.update(this));
+				if (hostConnection && hostConnection.open) {
+					const myShip = this.ships[0];
+					hostConnection.send({
+						xPos: myShip.xPos,
+						yPos: myShip.yPos,
+						xVel: myShip.xVel,
+						yVel: myShip.yVel,
+						angle: myShip.angle,
+					})
+				}
 
 				for (var i in this.bullets){
 					var b = this.bullets[i];
@@ -334,19 +378,21 @@ class Game {
 					m.update(this);
 				}
 
-				this.bullets.forEach(b => {if(b.kill) b.path.remove()});
+				this.bullets.forEach((b) => {
+					if(b.kill) b.path.remove();
+				});
 				this.bullets = this.bullets.filter(b => !b.kill);
 				this.meteors = this.meteors.filter(m => !m.kill);
 
 				this.scoreItem.content = this.score;
-				if(this.ship.dead){
-					var highScore = parseInt(getCookie("highscore"))
-					if(this.score > highScore){
-						setCookie("highscore", this.score)
-						alert("You died. RIP, my dude.\nNew High Score!: " + this.score);
-					}else alert("You died. RIP, my dude.\nYour current high score is: " + highScore);
-					clearInterval(intervalId);
-					location.reload();
+				if(this.ships[0].dead){
+					// var highScore = parseInt(getCookie("highscore"))
+					// if(this.score > highScore){
+					// 	setCookie("highscore", this.score)
+					// 	alert("You died. RIP, my dude.\nNew High Score!: " + this.score);
+					// }else alert("You died. RIP, my dude.\nYour current high score is: " + highScore);
+					// clearInterval(intervalId);
+					// location.reload();
 				}
 				if(count%10==0) this.score++;
 				count++;
@@ -434,7 +480,7 @@ window.mobilecheck = function() {
   return check;
 };
 
-let canvas = document.getElementById("screen");
-let game = new Game(canvas);
+const canvas = document.getElementById("screen");
+const game = new Game(canvas);
 
 game.start();
