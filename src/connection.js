@@ -1,6 +1,8 @@
 const HOST_ID = 'c2e22ce1-e106-45a7-8320-15489f1658cd';
 const PEER_ID = uuid.v4();
 
+let isHost = false;
+
 // List of IDs of active connections to host
 const connectionIds = [];
 
@@ -13,7 +15,7 @@ let hostConnection;
 peer.on('open', (id) => {
 	console.log('Peer connection opened with id', id);
 
-	hostConnection = peer.connect(HOST_ID);
+	hostConnection = peer.connect(HOST_ID, { reliable: true });
 
 	hostConnection.on('open', () => {
 		console.log('Peer connection established with host');
@@ -21,40 +23,50 @@ peer.on('open', (id) => {
 
 	hostConnection.on('data', (data) => {
 		// Array of game objects
-		data.forEach(gameObj => {
-			const isNew = gameObj.new;
-			const isDead = gameObj.kill;
-			const id = gameObj.id;
-			switch (gameObj.type) {
-				case 'meteor':
-					if (isDead) {
-						this.meteors = this.meteors.splice(id, 1);
+		// This stuff will be stored on the client machine and is sent from the host
+		if (data.meteors) {
+			data.meteors.forEach(mtr => {
+				const id = mtr.id;
+				if (mtr.kill) {
+					delete game.meteors[id];
+				} else {
+					let meteor = game.meteors[id];
+					if (!meteor) {
+						meteor = (game.meteors[id] = new Meteor(paper.Path.importJSON(mtr.path), mtr.radius, mtr.rotation, mtr.xVel, mtr.yVel));
 					}
-					let meteor;
-					if (isNew) {
-						meteor = new Meteor(gameObj.path, gameObj.radius, gameObj.rotation, gameObj.xVel, gameObj.yVel);
+					meteor.setPosition(mtr.xPos, mtr.yPos);
+				}
+			});
+		}
+		if (data.bullets) {
+			data.bullets.forEach(blt => {
+				const id = blt.id;
+				if (blt.kill) {
+					delete game.bullets[id];
+				} else {
+					let bullet = game.bullets[id];
+					if (!bullet) {
+						bullet = (game.bullets[id] = new Bullet(undefined, blt.xPos, blt.yPos, blt.angle));
 					}
-					meteor.setPosition(gameObj.xPos, gameObj.yPos);
-					game.meteors[id] = meteor;
-					break;
-				case 'ship':
-					let ship;
-					if (isNew) {
-						ship = new Ship(true);
+				}
+			});
+		}
+		if (data.ships) {
+			data.ships.forEach(sp => {
+				const id = sp.id;
+				if (sp.kill) {
+					delete game.ships[id];
+				} else {
+					let ship = game.ships[id];
+					if (!ship) {
+						ship = (game.ships[id] = new Ship(true));
 					}
-					ship.setPosition(gameObj.x, gameObj.y);
-					ship.setVelocity(gameObj.xVel, gameObj.yVel);
-					game.ships[id] = ship;
-					break;
-				case 'bullet':
-					let bullet;
-					if (isNew) {
-						bullet = new Bullet(undefined, gameObj.xPos, gameObj.yPos, gameObj.angle);
-					}
-					game.bullets[id] = bullet;
-					break;
-			}
-		});
+					ship.setPosition(sp.xPos, sp.yPos);
+					ship.setVelocity(sp.xVel, sp.yVel);
+					ship.setAngle(sp.angle);
+				}
+			});
+		}
 	});
 
 	hostConnection.on('close', () => {
@@ -87,18 +99,22 @@ peer.on('open', (id) => {
 	}, 3000);
 });
 
+let hostPeer;
+const activeConnections = [];
+
 // If host connection fails, assume responsibility of the host
 function becomeHost() {
-	const hostPeer = new Peer(HOST_ID);
-	const activeConnections = [];
+	hostPeer = new Peer(HOST_ID);
 
 	hostPeer.on('open', (id) => {
 		console.log('Host peer started with ID', id);
+		isHost = true;
 	})
 
 	hostPeer.on('connection', (dc) => {
 		console.log('New connection:', dc.peer);
 		activeConnections.push(dc);
+		console.log('Total connections:', activeConnections.length);
 		const connIds = activeConnections.map(c => c.peer);
 		activeConnections.forEach(conn => {
 			conn.send(connIds);
@@ -109,18 +125,21 @@ function becomeHost() {
 		});
 
 		dc.on('data', (data) => {
-			const ship = game.ships.find(s => s.id === data.id);
+			const id = data.id;
+			const ship = game.ships[id];
 			if (!ship) {
 				console.log('creating new ship');
-				game.ships.push(new Ship(true, data.id));
+				game.ships[id] = new Ship(true);
 			} else {
 				ship.setPosition(data.xPos, data.yPos);
 				ship.setVelocity(data.xVel, data.yVel);
 				ship.setAngle(data.angle);
+				if (data.shoot) ship.shootBullet();
 			}
 		});
 
 		dc.on('close', () => {
+			console.log('Connection lost with', dc.peer);
 			const id = activeConnections.findIndex(c => c.peer === dc.peer);
 			activeConnections.splice(id, 1);
 		});

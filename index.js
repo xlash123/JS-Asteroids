@@ -1,4 +1,8 @@
-const FPS = 100;
+const FPS = 60;
+
+const SHIP_SPEED = 5;
+const METEOR_SPEED = 2.9;
+const SHIP_ACCEL = 0.12;
 
 class Bullet {
 
@@ -13,7 +17,7 @@ class Bullet {
 		if(this.yPos < 0) this.yPos += this.canvas.height;
 		else if(this.yPos > this.canvas.height) this.yPos -= this.canvas.height;
 
-		this.speed = 7;
+		this.speed = 11;
 		this.kill = false;
 
 		this.path = new paper.Path.Line(new paper.Point(this.xPos, this.yPos), new paper.Point(this.xPos+12, this.yPos));
@@ -44,26 +48,26 @@ class Meteor {
 				case 0:
 					this.xPos = -this.radius
 					this.yPos = Math.random() * this.canvas.height;
-					this.xVel = Math.random() * 1.7 + 0.3;
-					this.yVel = (Math.random() * 1.7 + 0.3)-2;
+					this.xVel = Math.random() * METEOR_SPEED + 0.5;
+					this.yVel = (Math.random() * METEOR_SPEED + 0.5)-2;
 					break;
 				case 1:
 					this.xPos = this.canvas.width+this.radius;
 					this.yPos = Math.random() * this.canvas.height;
-					this.xVel = -Math.random() * 1.7 + 0.3;
-					this.yVel = (Math.random() * 1.7 + 0.3)-2;
+					this.xVel = -Math.random() * METEOR_SPEED + 0.5;
+					this.yVel = (Math.random() * METEOR_SPEED + 0.5)-2;
 					break;
 				case 2:
 					this.yPos = -this.radius;
 					this.xPos = Math.random() * this.canvas.width;
-					this.xVel = (Math.random() * 1.7 + 0.3)-2;
-					this.yVel = Math.random() * 1.7 + 0.3;
+					this.xVel = (Math.random() * METEOR_SPEED + 0.5)-2;
+					this.yVel = Math.random() * METEOR_SPEED + 0.5;
 					break;
 				case 3:
 					this.yPos = this.canvas.height+this.radius;
 					this.xPos = Math.random() * this.canvas.width;
-					this.xVel = (Math.random() * 1.7 + 0.3)-2;
-					this.yVel = -Math.random() * 1.7 + 0.3;
+					this.xVel = (Math.random() * METEOR_SPEED + 0.5)-2;
+					this.yVel = -Math.random() * METEOR_SPEED + 0.5;
 			}
 		}
 		this.kill = false;
@@ -116,7 +120,7 @@ class Meteor {
 
 class Ship {
 
-	constructor(isRemote = false, id) {
+	constructor(isRemote = false) {
 		this.canvas = canvas;
 		this.xPos = this.canvas.width/2;
 		this.yPos = this.canvas.height/2;
@@ -124,11 +128,9 @@ class Ship {
 		this.radius = 12;
 		this.xVel = 0;
 		this.yVel = 0;
-		this.bullets = [];
 		this.bulletTick = 13;
 		this.dead = false;
 		this.isRemote = isRemote;
-		this.id = id;
 
 		this.path = new paper.Path();
 		this.path.strokeColor = "white";
@@ -148,21 +150,21 @@ class Ship {
 			}
 			this.angle += dAngle;
 			if(keys[KEY.UP] || keys[KEY.W]){
-				this.xVel += 0.038*Math.cos(this.angle * Math.PI / 180);
-				this.yVel += 0.038*Math.sin(this.angle * Math.PI / 180);
+				this.xVel += SHIP_ACCEL*Math.cos(this.angle * Math.PI / 180);
+				this.yVel += SHIP_ACCEL*Math.sin(this.angle * Math.PI / 180);
 			}
 			if(keys[KEY.DOWN] || keys[KEY.S]){
-				this.xVel -= 0.038*Math.cos(this.angle * Math.PI / 180);
-				this.yVel -= 0.038*Math.sin(this.angle * Math.PI / 180);
+				this.xVel -= SHIP_ACCEL*Math.cos(this.angle * Math.PI / 180);
+				this.yVel -= SHIP_ACCEL*Math.sin(this.angle * Math.PI / 180);
 			}
-			if(keys[KEY.SPACE] && this.bulletTick > 12){
+			if(keys[KEY.SPACE]){
 				this.shootBullet();
 			}
 		}
-		if(this.xVel > 1.85) this.xVel = 1.85;
-		else if(this.xVel < -1.85) this.xVel = -1.85;
-		if(this.yVel > 1.85) this.yVel = 1.85;
-		else if(this.yVel < -1.85) this.yVel = -1.85;
+		if(this.xVel > SHIP_SPEED) this.xVel = SHIP_SPEED;
+		else if(this.xVel < -SHIP_SPEED) this.xVel = -SHIP_SPEED;
+		if(this.yVel > SHIP_SPEED) this.yVel = SHIP_SPEED;
+		else if(this.yVel < -SHIP_SPEED) this.yVel = -SHIP_SPEED;
 
 		this.xPos += this.xVel;
 		this.yPos += this.yVel;
@@ -171,8 +173,8 @@ class Ship {
 		if(this.yPos < 0) this.yPos = this.canvas.height;
 		else if(this.yPos > this.canvas.height) this.yPos = 0;
 
-		this.xVel *= 0.9915;
-		this.yVel *= 0.9915;
+		this.xVel *= 0.98;
+		this.yVel *= 0.98;
 		if(Math.abs(this.xVel) < 0.001) this.xVel = 0;
 		if(Math.abs(this.yVel) < 0.001) this.yVel = 0;
 
@@ -192,8 +194,12 @@ class Ship {
 	}
 
 	shootBullet() {
-		game.bullets.push(new Bullet(this));
-		this.bulletTick = 0;
+		if (isHost && this.bulletTick > 8) {
+			const id = uuid.v4();
+			game.bullets[id] = new Bullet(this);
+			if (isHost) game.newBullets.push(id);
+			this.bulletTick = 0;
+		}
 	}
 
 	setPosition(x, y) {
@@ -209,7 +215,9 @@ class Ship {
 	setAngle(angle) {
 		let dAngle = angle - this.angle;
 		this.angle = angle;
-		this.path.rotate(dAngle);w
+		this.path.position = new paper.Point(this.xPos, this.yPos);
+		this.path.pivot = new paper.Point(this.xPos, this.yPos);
+		this.path.rotate(dAngle);
 	}
 
 }
@@ -275,9 +283,13 @@ class Game {
 		this.canvas.width = container.clientWidth;
 		this.isMobile = window.mobilecheck();
 		paper.setup(canvas);
-		this.ships = [new Ship(false, 'host')];
-		this.bullets = [];
-		this.meteors = [];
+		this.shipId = uuid.v4();
+		this.ships = {};
+		this.ships[this.shipId] = new Ship(false);
+		this.bullets = {};
+		this.meteors = {};
+		this.newBullets = [];
+		this.newMeteors = [];
 		this.score = 0;
 		
 		this.canvasX = canvas.getBoundingClientRect().left;
@@ -325,7 +337,7 @@ class Game {
 			window.ontouchmove = preventDefault;
 		}else{
 			console.log("Setting up keypress events");
-			this.canvas.addEventListener("keydown", handleKeyDown(this.ships[0]), false);
+			this.canvas.addEventListener("keydown", handleKeyDown(this.ships[this.shipId]), false);
 			this.canvas.addEventListener("keyup", handleKeyUp, false);
 		}
 		this.loop();
@@ -342,6 +354,7 @@ class Game {
 		pausedText.content = "Paused";
 		pausedText.position = new paper.Point(this.canvas.width/2, this.canvas.height/2);
 		pausedText.visible = false;
+		let wasHost = isHost;
 		intervalId = setInterval(()=>{
 			if(paused){
 				if(letUp && keys[KEY.ESC]){
@@ -353,39 +366,100 @@ class Game {
 					letUp = true;
 				}
 			}else{
-				if(Math.random() < (0.03 + count/1200000)){
-					this.meteors.push(new Meteor());
+				const myShip = this.ships[this.shipId];
+				this.newMeteors = [];
+				if(isHost && Math.random() < (0.03 + count/1200000)){
+					const id = uuid.v4();
+					this.meteors[id] = new Meteor();
+					this.newMeteors.push(id);
 				}
-				this.ships.forEach(ship => ship.update(this));
+				if (!wasHost && isHost) {
+					wasHost = true;
+					this.newMeteors = this.newMeteors.concat(Object.keys(this.meteors));
+				}
+
+				this.newBullets = [];
+				Object.keys(this.ships).forEach(id => {
+					this.ships[id].update(this);
+				});
+
 				if (hostConnection && hostConnection.open) {
-					const myShip = this.ships[0];
 					hostConnection.send({
+						id: this.shipId,
 						xPos: myShip.xPos,
 						yPos: myShip.yPos,
 						xVel: myShip.xVel,
 						yVel: myShip.yVel,
 						angle: myShip.angle,
+						shoot: keys[KEY.SPACE],
 					})
 				}
 
-				for (var i in this.bullets){
-					var b = this.bullets[i];
-					b.update(this);
-				}
-
-				for (var i in this.meteors){
-					var m = this.meteors[i];
-					m.update(this);
-				}
-
-				this.bullets.forEach((b) => {
-					if(b.kill) b.path.remove();
+				Object.keys(this.bullets).forEach(id => {
+					this.bullets[id].update(this);
 				});
-				this.bullets = this.bullets.filter(b => !b.kill);
-				this.meteors = this.meteors.filter(m => !m.kill);
+
+				Object.keys(this.meteors).forEach(id => {
+					this.meteors[id].update(this);
+				});
+
+				if (isHost && count % 4 === 0) {
+					const toSend = {
+						ships: Object.keys(this.ships).map(id => {
+							const ship = this.ships[id];
+							return {
+								id,
+								xPos: ship.xPos,
+								yPos: ship.yPos,
+								xVel: ship.xVel,
+								yVel: ship.yVel,
+								angle: ship.angle,
+							};
+						}),
+						meteors: Object.keys(this.meteors).map(id => {
+							const meteor = this.meteors[id];
+							let data = {
+								id,
+								xPos: meteor.xPos,
+								yPos: meteor.yPos,
+								kill: meteor.kill,
+							};
+							if (this.newMeteors.includes(id)) {
+								data = {
+									...data,
+									path: meteor.path.exportJSON(),
+									radius: meteor.radius,
+									rotation: meteor.rotation,
+									xVel: meteor.xVel,
+									yVel: meteor.yVel,
+								}
+							}
+							if (this.meteors[id].kill) {
+								delete this.meteors[id];
+							}
+							return data;
+						}),
+						bullets: Object.keys(this.bullets).map(id => {
+							const bullet = this.bullets[id];
+							const data = {
+								xPos: bullet.xPos,
+								yPos: bullet.yPos,
+								angle: bullet.angle,
+							};
+							if(bullet && bullet.kill) {
+								bullet.path.remove();
+								delete this.bullets[id];
+							}
+							return data;
+						}),
+					};
+					activeConnections.map(ac => {
+						ac.send(toSend);
+					});
+				}
 
 				this.scoreItem.content = this.score;
-				if(this.ships[0].dead){
+				if(myShip.dead){
 					// var highScore = parseInt(getCookie("highscore"))
 					// if(this.score > highScore){
 					// 	setCookie("highscore", this.score)
@@ -394,7 +468,7 @@ class Game {
 					// clearInterval(intervalId);
 					// location.reload();
 				}
-				if(count%10==0) this.score++;
+				if(count%6==0) this.score++;
 				count++;
 				if(letUp && keys[KEY.ESC]){
 					paused = true;
